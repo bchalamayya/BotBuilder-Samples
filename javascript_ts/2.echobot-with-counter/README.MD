@@ -9,10 +9,8 @@ This sample shows how to create a simple echo bot with state. The bot maintains 
     ```bash
     cd javascript_ts\2.echobot-with-counter
     ```
-- Point to the MyGet feed 
-    ```bash
-    npm config set registry https://botbuilder.myget.org/F/botbuilder-v4-js-daily/npm/
-    ```
+- [Optional] Update the .env file under javascript_ts\2.echobot-with-counter with your botFileSecret
+    For Azure Bot Service bots, you can find the botFileSecret under application settings.
 - Install modules and start the bot
     ```bash
     npm i & npm start
@@ -20,10 +18,6 @@ This sample shows how to create a simple echo bot with state. The bot maintains 
     Alternatively you can also use nodemon via
     ```bash
     npm i & npm run watch
-    ```
-- To reset registry, you can do
-    ```bash
-    npm config set registry https://registry.npmjs.org/
     ```
 
 # Testing the bot using Bot Framework Emulator

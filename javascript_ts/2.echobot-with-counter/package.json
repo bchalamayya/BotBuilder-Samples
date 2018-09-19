@@ -6,7 +6,8 @@
   "scripts": {
     "build-sample": "tsc",
     "start": "tsc && node ./lib/index.js",
-    "watch": "nodemon ./lib/index.js"
+    "watch": "nodemon ./lib/index.js",
+    "install-botbuilder-tools": "npm i -g chatdown ludown msbot botdispatch luisgen luis-apis qnamaker"
   },
   "author": "Microsoft",
   "license": "MIT",

@@ -4,18 +4,20 @@
 import * as restify from 'restify';
 import * as path from 'path';
 import { config } from 'dotenv';
-import { BotFrameworkAdapter, MemoryStorage, ConversationState } from 'botbuilder';
+import { BotFrameworkAdapter, MemoryStorage, ConversationState, TurnContext } from 'botbuilder';
 import { BotConfiguration, IEndpointService, IBlobStorageService } from 'botframework-config';
-
+import { BlobStorage } from 'botbuilder-azure';
 import { MainDialog } from './dialogs/mainDialog';
 
 const BOT_CONFIG_ERROR = 1;
+const DEV_ENVIRONMENT = 'development';
 
 // bot name as defined in .bot file 
 // See https://aka.ms/about-bot-file to learn more about .bot file its use and bot configuration .
-const BOT_CONFIGURATION = (process.env.NODE_ENV || 'development');
+const BOT_CONFIGURATION = (process.env.NODE_ENV || DEV_ENVIRONMENT);
 
 // Read botFilePath and botFileSecret from .env file.
+// Note: Ensure you have a .env file and include botFilePath and botFileSecret.
 const ENV_FILE = path.join(__dirname, '..', '.env');
 const loadFromEnv = config({path: ENV_FILE});
 
@@ -51,36 +53,26 @@ const adapter = new BotFrameworkAdapter({
 
 // Define a state store for your bot. See https://aka.ms/about-bot-state to learn more about using MemoryStorage.
 // A bot requires a state store to persist the dialog and user state between messages.
+let conversationState:ConversationState;
 
-// const memoryStorage = new MemoryStorage();
-// Create conversation state with in-memory storage provider. 
-// const conversationState = new ConversationState(memoryStorage);
-
-
-import { BlobStorage } from 'botbuilder-azure';
-const STORAGE_CONFIGURATION_ID = '2';
-const blobStorageConfig = <IBlobStorageService>botConfig.findServiceByNameOrId(STORAGE_CONFIGURATION_ID);
-const blobStorage = new BlobStorage({
-    containerName: blobStorageConfig.container,
-    storageAccountOrConnectionString: blobStorageConfig.connectionString,
-});
-const conversationState = new ConversationState(blobStorage);
-
-//import { BlobStorage } from 'botbuilder-azure';
-//const STORAGE_CONFIGURATION_ID = '<ID OF YOUR BLOB STORAGE CONFIGURATION FROM .BOT FILE>';
-
+// For local development, in-memory storage is used.
 // CAUTION: The Memory Storage used here is for local bot debugging only. When the bot
 // is restarted, anything stored in memory will be gone. 
-// For production bots use the Azure Cosmos DB storage, Azure Blob storage providers. 
-// const { CosmosDbStorage } = require('botbuilder-azure');
-// const STORAGE_CONFIGURATION = 'cosmosDB'; // this is the name of the Cosmos DB configuration in your .bot file
-// const cosmosConfig = botConfig.findServiceByNameOrId(STORAGE_CONFIGURATION);
-// const cosmosStorage = new CosmosDbStorage({serviceEndpoint: cosmosConfig.connectionString, 
-//                                            authKey: ?, 
-//                                            databaseId: cosmosConfig.database, 
-//                                            collectionId: cosmosConfig.collection});
-
-
+const memoryStorage = new MemoryStorage();
+conversationState = new ConversationState(memoryStorage);
+// CAUTION: You must ensure your product environment has the NODE_ENV set 
+//          to use the Azure Blob storage or Azure Cosmos DB providers. 
+// Storage configuration name or ID from .bot file
+// const STORAGE_CONFIGURATION_ID = '<STORAGE-NAME-OR-ID-FROM-BOT-FILE>';
+// // Default container name
+// const DEFAULT_BOT_CONTAINER = '<DEFAULT-CONTAINER>';
+// // Get service configuration
+// const blobStorageConfig = <IBlobStorageService>botConfig.findServiceByNameOrId(STORAGE_CONFIGURATION_ID);
+// const blobStorage = new BlobStorage({
+//     containerName: (blobStorageConfig.container || DEFAULT_BOT_CONTAINER),
+//     storageAccountOrConnectionString: blobStorageConfig.connectionString,
+// });
+// conversationState = new ConversationState(blobStorage);
 
 // Create the main dialog.
 const mainDlg = new MainDialog(conversationState);
@@ -93,3 +85,14 @@ server.post('/api/messages', (req, res) => {
     });
 });
 
+// Catch-all for errors.
+adapter.onTurnError = async (context: TurnContext, error: Error) => {
+    // This check writes out errors to console log .vs. app insights. 
+    // CAUTION: You must ensure your production environment has NODE_ENV set
+    //          to use the Azure application insights provider.
+    console.log(`\n [Error]: ${ error }`);
+    // Send a message to the user
+    context.sendActivity(`Oops. Something went wrong!`);
+    // Clear out state
+    conversationState.clear(context);
+};

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { StatePropertyAccessor, ConversationState } from 'botbuilder';
+import { StatePropertyAccessor, ConversationState, TurnContext } from 'botbuilder';
 
 // Turn counter property
 const TURN_COUNTER = 'turnCounter';
@@ -9,7 +9,7 @@ const TURN_COUNTER = 'turnCounter';
 export class MainDialog {
     /**
      * 
-     * @param {Object} conversationState 
+     * @param {ConversationState} conversation state object
      */
     private readonly countAccessor: StatePropertyAccessor<number>;
     private conversationState: ConversationState;
@@ -20,22 +20,22 @@ export class MainDialog {
     }
     /**
      * 
-     * @param {Object} context on turn context object.
+     * @param {TurnContext} on turn context object.
      */
-    async onTurn(context) {
+    async onTurn(turnContext) {
         // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-        if (context.activity.type === 'message') {
+        if (turnContext.activity.type === 'message') {
             // read from state.
-            let count = await this.countAccessor.get(context);
+            let count = await this.countAccessor.get(turnContext);
             count = count === undefined ? 1 : count;
-            await context.sendActivity(`${count}: You said "${context.activity.text}"`);
+            await turnContext.sendActivity(`${count}: You said "${turnContext.activity.text}"`);
             // increment and set turn counter.
-            await this.countAccessor.set(context, ++count);
+            await this.countAccessor.set(turnContext, ++count);
         }
         else {
-            await context.sendActivity(`[${context.activity.type} event detected]`);
+            await turnContext.sendActivity(`[${turnContext.activity.type} event detected]`);
         }
-        
-        await this.conversationState.saveChanges(context);
+        // Save state changes
+        await this.conversationState.saveChanges(turnContext);
     }
 }

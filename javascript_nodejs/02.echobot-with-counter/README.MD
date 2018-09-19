@@ -1,20 +1,16 @@
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
-
-This sample shows how to create a simple Echo bot with state. The bot keeps simple counter step that increased with each user message. This bot example uses [`restify`](https://www.npmjs.com/package/restify).
+This sample shows how to create a simple echo bot with state. The bot maintains a simple counter that increases with each message from the user. This bot example uses [`restify`](https://www.npmjs.com/package/restify). 
 
 # To try this sample
 - Clone the repository
     ```bash
-    git clone https://github.com/Microsoft/botbuilder-js.git
+    git clone https://github.com/microsoft/botbuilder-samples.git
     ```
-- In a terminal, navigate to samples\02.echobot-with-counter
+- In a terminal, navigate to javascript_nodejs\2.echobot-with-counter
     ```bash
-    cd samples\02.echobot-with-counter
+    cd javascript_nodejs\2.echobot-with-counter
     ```
-- Point to the myget feed 
-    ```bash
-    npm config set registry https://botbuilder.myget.org/F/botbuilder-v4-js-daily/npm/
-    ```
+- [Optional] Update the .env file under javascript_nodejs\2.echobot-with-counter with your botFileSecret
+    For Azure Bot Service bots, you can find the botFileSecret under application settings.
 - Install modules and start the bot
     ```bash
     npm i & npm start
@@ -23,19 +19,15 @@ This sample shows how to create a simple Echo bot with state. The bot keeps simp
     ```bash
     npm i & npm run watch
     ```
-- To reset registry, you can do
-    ```bash
-    npm config set registry https://registry.npmjs.org/
-    ```
 
 # Testing the bot using Bot Framework Emulator
 [Microsoft Bot Framework Emulator](https://github.com/microsoft/botframework-emulator) is a desktop application that allows bot developers to test and debug their bots on localhost or running remotely through a tunnel.
 
 - Install the Bot Framework emulator from [here](https://aka.ms/botframework-emulator)
 
-## Connect to bot using Bot Framework Emulator V4
+## Connect to bot using Bot Framework Emulator **V4**
 - Launch Bot Framework Emulator
-- File -> Open Bot Configuration and navigate to samples\02.echobot-with-state folder
+- File -> Open Bot Configuration and navigate to samples\2.echobot-with-state folder
 - Select echobot-with-state.bot file
 
 # Bot state

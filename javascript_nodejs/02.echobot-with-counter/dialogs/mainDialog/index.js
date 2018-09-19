@@ -5,32 +5,35 @@
 const TURN_COUNTER = 'turnCounter';
 
 class MainDialog {
-    /**
+     /**
      * 
-     * @param {Object} conversationState 
+     * @param {ConversationState} conversation state object
      */
     constructor (conversationState) {
         // creates a new state accessor property.see https://aka.ms/about-bot-state-accessors to learn more about the bot state and state accessors 
         this.countProperty = conversationState.createProperty(TURN_COUNTER);
+        this.conversationState = conversationState;
     }
     /**
      * 
-     * @param {Object} context on turn context object.
+     * @param {TurnContext} on turn context object.
      */
-    async onTurn(context) {
+    async onTurn(turnContext) {
         // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-        if (context.activity.type === 'message') {
+        if (turnContext.activity.type === 'message') {
             // read from state.
-            let count = await this.countProperty.get(context);
+            let count = await this.countProperty.get(turnContext);
             count = count === undefined ? 1 : count;
-            await context.sendActivity(`${count}: You said "${context.activity.text}"`);
+            await turnContext.sendActivity(`${count}: You said "${turnContext.activity.text}"`);
             // increment and set turn counter.
-            this.countProperty.set(context, ++count);
+            this.countProperty.set(turnContext, ++count);
         }
         else {
-            await context.sendActivity(`[${context.activity.type} event detected]`);
+            await turnContext.sendActivity(`[${turnContext.activity.type} event detected]`);
         }
+        // Save state changes
+        await this.conversationState.saveChanges(turnContext);
     }
 }
 
-module.exports = MainDialog;
+module.exports.MainDialog = MainDialog;
