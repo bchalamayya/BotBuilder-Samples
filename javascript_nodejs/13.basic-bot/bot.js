@@ -5,7 +5,7 @@ const { ActivityTypes, CardFactory } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
 const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
-const { GreetingState } = require('./dialogs/greeting/greetingState');
+const { UserProfile } = require('./dialogs/greeting/userProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
 
@@ -14,7 +14,7 @@ const GREETING_DIALOG = 'greetingDialog';
 
 // State Accessor Properties
 const DIALOG_STATE_PROPERTY = 'dialogState';
-const GREETING_STATE_PROPERTY = 'greetingState';
+const USER_PROFILE_PROPERTY = 'userProfileProperty';
 
 // this is the LUIS service type entry in the .bot file.
 const LUIS_CONFIGURATION = 'basic-bot-LUIS';
@@ -42,7 +42,7 @@ class Bot {
     /**
      * Constructs the three pieces necessary for this bot to operate:
      * 1. StatePropertyAccessor for conversation state
-     * 2. StatePropertyAccess for user state3
+     * 2. StatePropertyAccess for user state
      * 3. LUIS client
      * 4. DialogSet to handle our GreetingDialog
      *
@@ -55,7 +55,7 @@ class Bot {
         if (!userState) throw ('Missing parameter.  userState is required');
         if (!botConfig) throw ('Missing parameter.  botConfig is required');
 
-        // add the LUIS recogizer
+        // Add the LUIS recogizer.
         const luisConfig = botConfig.findServiceByNameOrId(LUIS_CONFIGURATION);
         if (!luisConfig || !luisConfig.appId) throw ('Missing LUIS configuration. Please follow README.MD to create required LUIS applications.\n\n')
         this.luisRecognizer = new LuisRecognizer({
@@ -66,12 +66,12 @@ class Bot {
         });
 
         // Create the property accessors for user and conversation state
-        this.greetingStateAccessor = userState.createProperty(GREETING_STATE_PROPERTY);
+        this.userProfileAccessor = userState.createProperty(USER_PROFILE_PROPERTY);
         this.dialogState = conversationState.createProperty(DIALOG_STATE_PROPERTY);
 
         // Create top-level dialog(s)
         this.dialogs = new DialogSet(this.dialogState);
-        this.dialogs.add(new GreetingDialog(GREETING_DIALOG, this.greetingStateAccessor));
+        this.dialogs.add(new GreetingDialog(GREETING_DIALOG, this.userProfileAccessor));
     }
 
     /**
@@ -94,10 +94,13 @@ class Bot {
             const results = await this.luisRecognizer.recognize(context);
             const topIntent = LuisRecognizer.topIntent(results);
             
-            // update greeting state with any entities captured
-            await this.updateGreetingState(results, context);
+            // update user profile property with any entities captured by LUIS
+            // This could be user responding with their name or city while we are in the middle of greeting dialog, 
+            // or user saying something like 'i'm {userName}' while we have no active multi-turn dialog.
+            await this.updateUserProfile(results, context);
 
-            // Evaluate if we have an interruption.
+            // Based on LUIS topIntent, evaluate if we have an interruption.
+            // Interruption here refers to user looking for help/ cancel.
             const interrupted = await this.isTurnInterrupted(dc, results);
             if (interrupted) {
                 if (dc.activeDialog !== undefined) {
@@ -109,40 +112,62 @@ class Bot {
                 dialogResult = await dc.continue();
             }
 
-            // if no one has responded, 
+            // If no active dialog or no active dialog has responded,  
             if(!dc.context.responded) {
-                // examine results from active dialog
+                // Switch on return results from any active dialog.
                 switch(dialogResult.status) {
+                    // dc.continue() returns DialogTurnStatus.empty if there are no active dialogs
                     case DialogTurnStatus.empty:
+                        // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
                             case GREETING_INTENT:
                                 await dc.begin(GREETING_DIALOG);
                                 break;
                             case NONE_INTENT:
                             default:
-                                // help or no intent identified, either way, let's provide some help
+                                // None or no intent identified, either way, let's provide some help
                                 // to the user
                                 await dc.context.sendActivity(`I didn't understand what you just said to me.`);
                                 break;
                         }
                     case DialogTurnStatus.waiting:
-                        // The active dialog is waiting for a response from the user, so do nothing
+                        // The active dialog is waiting for a response from the user, so do nothing.
                         break;
                     case DialogTurnStatus.complete:
-                        await dc.end();
+                        // All child dialogs have ended. so do nothing.
                         break;
                     default:
+                        // Unrecognized status from child dialog. Cancel all dialogs.
                         await dc.cancelAll();
                         break;
                 }
             }
-        } else if (context.activity.type === 'conversationUpdate' && context.activity.membersAdded[0].name === 'Bot') {
-            // When activity type is "conversationUpdate" and the member joining the conversation is the bot
-            // we will send our Welcome Adaptive Card.  This will only be sent once, when the Bot joins conversation
-            // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
-            const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
-            await context.sendActivity({ attachments: [welcomeCard] });
+        } else if (context.activity.type === ActivityTypes.ConversationUpdate) {
+            // Do we have any new members added to the conversation?
+            if (context.activity.membersAdded.length !== 0)
+            {
+                // Iterate over all new members added to the conversation
+                for (var idx in context.activity.membersAdded)
+                {
+                    // Greet anyone that was not the target (recipient) of this message
+                    // the 'bot' is the recipient for events from the channel,
+                    // context.activity.membersAdded == context.activity.recipient.Id indicates the
+                    // bot was added to the conversation.
+                    if (context.activity.membersAdded[idx].id !== context.activity.recipient.id)
+                    {
+                        // Welcome user.
+                        // When activity type is "conversationUpdate" and the member joining the conversation is the bot
+                        // we will send our Welcome Adaptive Card.  This will only be sent once, when the Bot joins conversation
+                        // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
+                        const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
+                        await context.sendActivity({ attachments: [welcomeCard] });
+                    }
+                }
+            }            
         }
+
+        // persist state
+
     }
 
     /**
@@ -175,36 +200,38 @@ class Bot {
     }
 
     /**
-     * Helper function to update greeting state with entities returned by LUIS.
+     * Helper function to update user profile with entities returned by LUIS.
      * 
      * @param {LuisResults} luisResults - LUIS recognizer results
      * @param {DialogContext} dc - dialog context
      */
-    async updateGreetingState(luisResult, context) {
+    async updateUserProfile(luisResult, context) {
         // Do we have any entities? 
         if(Object.keys(luisResult.entities).length !== 1) {
-            // get greetingState object using the accessor
-            let greetingState = await this.greetingStateAccessor.get(context); 
-            if (greetingState === undefined) greetingState = new GreetingState();
+            // get userProfile object using the accessor
+            let userProfile = await this.userProfileAccessor.get(context); 
+            if (userProfile === undefined) {
+                userProfile = new UserProfile();
+            }
             // see if we have any user name entities
             USER_NAME_ENTITIES.forEach(name => {
                 if (luisResult.entities[name] !== undefined) {
                     let lowerCaseName = luisResult.entities[name][0];
                     // capitalize and set user name
-                    greetingState.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
+                    userProfile.name = lowerCaseName.charAt(0).toUpperCase() + lowerCaseName.substr(1);
                 }
             });
             USER_LOCATION_ENTITIES.forEach(city => {
                 if (luisResult.entities[city] !== undefined) {
                     let lowerCaseCity = luisResult.entities[city][0];
                     // capitalize and set user name
-                    greetingState.city = lowerCaseCity.charAt(0).toUpperCase() + lowerCaseCity.substr(1);
+                    userProfile.city = lowerCaseCity.charAt(0).toUpperCase() + lowerCaseCity.substr(1);
                 }
             }); 
             // set the new values
-            await this.greetingStateAccessor.set(context, greetingState);
+            await this.userProfileAccessor.set(context, userProfile);
         }
     }
 }
 
-module.exports = Bot;
+module.exports.Bot = Bot;

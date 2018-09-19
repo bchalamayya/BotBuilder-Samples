@@ -2,14 +2,14 @@
 // Licensed under the MIT License.
 
 /**
- * Simple object used by the user state property accessor.
- * Used to store the user state.
+ * Simple user profile object.
  */
-class GreetingState {
+class UserProfile {
   constructor(name, city) {
     this.name = name ? name : undefined;
     this.city = city ? city : undefined;
   }
-}
+}; 
 
-module.exports.GreetingState = GreetingState;
+module.exports.UserProfile = UserProfile;
+
