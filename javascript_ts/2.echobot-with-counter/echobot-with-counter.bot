@@ -1,14 +1,38 @@
 {
     "name": "echobot-with-counter",
-    "secretKey": "",
     "services": [
         {
             "type": "endpoint",
             "name": "development",
-            "id": "http://localhost:3978/api/messages",
+            "endpoint": "http://localhost:3985/api/messages",
             "appId": "",
             "appPassword": "",
-            "endpoint": "http://localhost:3978/api/messages"
+            "id": "240"
+        },
+        {
+            "connectionString": "dqXtjCGKL3zorQUDI1uEpA==!1Q5b+GSbNYNXYMAqi3Is62dPGI1CPA5YjXMjCxgqK42HBeskZs2X/U6NI9DjQuSWDVUIkvWlA4hMUenbQ8OEi8khQIsTvpvfuoaMGsEccPuVVA52RRX480aF7SI5Mpg0us49Pcziyz/6L8Bx/8DodnUP4DUm/i/n1kYadf5rwi2GvHkK9wC8PGdNDMT4Z6GST7MQKzVGpGJs4XJoX70zJN0sKzbKRsqioTtGT/rEpE8=",
+            "container": null,
+            "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "subscriptionId": "35fa7461-d48a-4053-9aa2-56c014495e89",
+            "resourceGroup": "vk-test-scratch",
+            "serviceName": "vktestechov4jsa015",
+            "type": "blob",
+            "name": null,
+            "id": "2"
+        },
+        {
+            "instrumentationKey": "CcAwzFaOU+5RQoViXASK7g==!e+wJ47pIw6Ib7f8bk8735Eft8FRLccTNcfYV/4E+XSIs1ZmdXhoJrE1ES0wphn5s",
+            "applicationId": "354d3683-afc2-444f-9f6f-e9b9a9ff72e4",
+            "apiKeys": {},
+            "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "subscriptionId": "35fa7461-d48a-4053-9aa2-56c014495e89",
+            "resourceGroup": "vk-test-scratch",
+            "serviceName": "vk-test-echo-v4-jsxfexvq",
+            "type": "appInsights",
+            "name": null,
+            "id": "5"
         }
-    ]
+    ],
+    "padlock": "",
+    "version": "2.0"
 }

@@ -11,8 +11,9 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "botbuilder": "^4.0.0-preview1.1089",
-    "botframework-config": "^4.0.0-preview1.1089",
+    "botbuilder": "^4.0.5-1500",
+    "botframework-config": "^4.0.5-1500",
+    "botbuilder-azure": "^4.0.5-1500",
     "dotenv": "^6.0.0",
     "restify": "^6.3.4"
   },
