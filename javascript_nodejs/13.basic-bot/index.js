@@ -98,9 +98,9 @@ server.post('/api/messages', (req, res) => {
 
 // Catch-all for errors.
 adapter.onTurnError = async (context, error) => {
-    // This check writes out errors to console log .vs. app insights. 
-    // CAUTION: You must ensure your production environment has NODE_ENV set
-    //          to use the Azure application insights provider.
+    // This check writes out errors to console log  
+    // NOTE: In production environment, you should consider loggin this to Azure 
+    //       application insights.
     console.log(`\n [Error]: ${ error }`);
     // Send a message to the user
     context.sendActivity(`Oops. Something went wrong!`);

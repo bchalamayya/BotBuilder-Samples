@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 
 /**
- * Simple user profile object.
+ * Simple user profile class.
  */
 class UserProfile {
-  constructor(name, city) {
-    this.name = name ? name : undefined;
-    this.city = city ? city : undefined;
-  }
+    constructor(name, city) {
+        this.name = name || undefined;
+        this.city = city || undefined;
+    }
 }; 
 
 module.exports.UserProfile = UserProfile;

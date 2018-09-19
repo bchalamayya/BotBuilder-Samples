@@ -58,13 +58,13 @@ class Greeting extends ComponentDialog {
      * @param {DialogContext} dc context for this dialog
      * @param {WaterfallStepContext} step contextual information for the current step being executed
      */
-    async initializeStateStep(dc, step) {
-        let userProfile = await this.userProfileAccessor.get(dc.context);
-        if(userProfileAccessor === undefined) { 
+    async initializeStateStep(step) {
+        let userProfile = await this.userProfileAccessor.get(step.context);
+        if(userProfile === undefined) { 
             if (step.options && step.options.userProfile) {
-                await this.userProfileAccessor.set(dc.context, step.options.userProfile);
+                await this.userProfileAccessor.set(step.context, step.options.userProfile);
             } else {
-                await this.userProfileAccessor.set(dc.context, new UserProfile());        
+                await this.userProfileAccessor.set(step.context, new UserProfile());        
             }
         }
         return await step.next();
@@ -78,18 +78,18 @@ class Greeting extends ComponentDialog {
      * @param {DialogContext} dc context for this dialog
      * @param {WaterfallStepContext} step contextual information for the current step being executed
      */
-    async promptForNameStep(dc, step) {
-      const userProfile = await this.userProfileAccessor.get(dc.context);
-      // if we have everything we need, greet user and return
-      if(userProfile !== undefined && userProfile.name !== undefined && userProfile.city !== undefined) {
-        return await this.greetUser(dc);
-      }
-      if(!userProfile.name) {
-        // prompt for name, if missing
-        return await dc.prompt(NAME_PROMPT, 'What is your name?');
-      } else {
-        return await step.next();
-      }
+    async promptForNameStep(step) {
+        const userProfile = await this.userProfileAccessor.get(step.context);
+        // if we have everything we need, greet user and return
+        if(userProfile !== undefined && userProfile.name !== undefined && userProfile.city !== undefined) {
+            return await this.greetUser(step);
+        }
+        if(!userProfile.name) {
+          // prompt for name, if missing
+            return await step.prompt(NAME_PROMPT, 'What is your name?');
+        } else {
+            return await step.next();
+        }
     }
     /**
      * Waterfall Dialog step functions.

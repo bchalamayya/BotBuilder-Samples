@@ -72,6 +72,9 @@ class Bot {
         // Create top-level dialog(s)
         this.dialogs = new DialogSet(this.dialogState);
         this.dialogs.add(new GreetingDialog(GREETING_DIALOG, this.userProfileAccessor));
+
+        this.conversationState = conversationState;
+        this.userState = userState;
     }
 
     /**
@@ -84,11 +87,10 @@ class Bot {
      * @param {Context} context turn context from the adapter
      */
     async onTurn(context) {
-        // Create a dialog context
-        const dc = await this.dialogs.createContext(context);
-
         if(context.activity.type === ActivityTypes.Message) {
             let dialogResult; 
+            // Create a dialog context
+            const dc = await this.dialogs.createContext(context);
             
             // Perform a call to LUIS to retrieve results for the current activity message.
             const results = await this.luisRecognizer.recognize(context);
@@ -105,11 +107,11 @@ class Bot {
             if (interrupted) {
                 if (dc.activeDialog !== undefined) {
                     // issue a re-prompt on the active dialog
-                    dialogResult = await dc.reprompt();
+                    dialogResult = await dc.repromptDialog();
                 } // Else: We dont have an active dialog so nothing to continue here.
             } else {
                 // this is not an interruption. So continue any active dialogs.
-                dialogResult = await dc.continue();
+                dialogResult = await dc.continueDialog();
             }
 
             // If no active dialog or no active dialog has responded,  
@@ -121,7 +123,7 @@ class Bot {
                         // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
                             case GREETING_INTENT:
-                                await dc.begin(GREETING_DIALOG);
+                                await dc.beginDialog(GREETING_DIALOG);
                                 break;
                             case NONE_INTENT:
                             default:
@@ -138,7 +140,7 @@ class Bot {
                         break;
                     default:
                         // Unrecognized status from child dialog. Cancel all dialogs.
-                        await dc.cancelAll();
+                        await dc.cancelAllDialogs();
                         break;
                 }
             }
@@ -167,7 +169,8 @@ class Bot {
         }
 
         // persist state
-
+        await this.conversationState.saveChanges(context);
+        await this.userState.saveChanges(context);
     }
 
     /**
