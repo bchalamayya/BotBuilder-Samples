@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { StatePropertyAccessor, ConversationState, TurnContext } from 'botbuilder';
+import { StatePropertyAccessor, ConversationState, TurnContext, ActivityTypes } from 'botbuilder';
 
 // Turn counter property
 const TURN_COUNTER = 'turnCounter';
@@ -24,7 +24,7 @@ export class MainDialog {
      */
     async onTurn(turnContext) {
         // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-        if (turnContext.activity.type === 'message') {
+        if (turnContext.activity.type === ActivityTypes.Message) {
             // read from state.
             let count = await this.countAccessor.get(turnContext);
             count = count === undefined ? 1 : count;

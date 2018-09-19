@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+const { ActivityTypes } = require('botbuilder');
+
 // Turn counter property
 const TURN_COUNTER = 'turnCounter';
 
@@ -20,7 +22,7 @@ class MainDialog {
      */
     async onTurn(turnContext) {
         // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-        if (turnContext.activity.type === 'message') {
+        if (turnContext.activity.type === ActivityTypes.Message) {
             // read from state.
             let count = await this.countProperty.get(turnContext);
             count = count === undefined ? 1 : count;
