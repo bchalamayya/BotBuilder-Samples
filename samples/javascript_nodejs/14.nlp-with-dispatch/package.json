@@ -1,0 +1,26 @@
+{
+  "name": "nlp-with-dispatch",
+  "version": "1.0.0",
+  "description": "Bot Builder v4 example that demonstrates how dispatch should be used E2E.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "watch": "nodemon index.js",
+    "install-botbuilder-tools": "npm i -g ludown msbot luis-apis botdispatch qnamaker chatdown"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "botbuilder": "^4.0.5",
+    "botframework-config": "^4.0.5",
+    "botbuilder-ai": "^4.0.5",
+    "botbuilder-dialogs": "^4.0.5",
+    "botbuilder-azure": "^4.0.5",
+    "dotenv": "^6.0.0",
+    "restify": "^6.3.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
+  }
+}
